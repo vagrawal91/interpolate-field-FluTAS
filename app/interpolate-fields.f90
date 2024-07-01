@@ -8,10 +8,10 @@
     ! input domain parameters
     !
     real(rp), parameter,       dimension(3) :: l     = [6._rp,3.0_rp,1._rp]
-    !integer , parameter,       dimension(3) :: ni   = [1728,864,288]
-    integer , parameter,       dimension(3) :: ni    = [144,72,24]
-    !integer , parameter,       dimension(3) :: no   = [3456,1728,576]
-    integer , parameter,       dimension(3) :: no    = [144,72,24]*2
+    integer , parameter,       dimension(3) :: ni   = [1728,864,288]
+    !integer , parameter,       dimension(3) :: ni    = [144,72,24]
+    integer , parameter,       dimension(3) :: no   = [3456,1728,576]
+    !integer , parameter,       dimension(3) :: no    = [144,72,24]*2
     real(rp), parameter,       dimension(3) :: dlo   = l(:)/no(:)
     real(rp), parameter,       dimension(3) :: dli   = l(:)/ni(:)
     !
