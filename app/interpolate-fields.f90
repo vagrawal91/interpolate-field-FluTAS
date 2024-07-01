@@ -7,9 +7,11 @@
     !
     ! input domain parameters
     !
-    real(rp), parameter,       dimension(3) :: l     = [1.5_rp,3._rp,1._rp]
-    integer , parameter,       dimension(3) :: ni    = [ 64, 64, 64]
-    integer , parameter,       dimension(3) :: no    = [128,128,128]
+    real(rp), parameter,       dimension(3) :: l     = [6._rp,3.0_rp,1._rp]
+    !integer , parameter,       dimension(3) :: ni   = [1728,864,288]
+    integer , parameter,       dimension(3) :: ni    = [144,72,24]
+    !integer , parameter,       dimension(3) :: no   = [3456,1728,576]
+    integer , parameter,       dimension(3) :: no    = [144,72,24]*2
     real(rp), parameter,       dimension(3) :: dlo   = l(:)/no(:)
     real(rp), parameter,       dimension(3) :: dli   = l(:)/ni(:)
     !
@@ -17,9 +19,9 @@
     !
     ! velocity
     character(len=1), parameter, dimension(0:1,3,3) :: cbcvel = &
-      reshape(['P','P','P','P','P','P',  & ! u lower,upper bound in x,y,z
-               'P','P','P','P','P','P',  & ! v lower,upper bound in x,y,z
-               'P','P','P','P','P','P'], & ! w lower,upper bound in x,y,z
+      reshape(['P','P','P','P','D','N',  & ! u lower,upper bound in x,y,z
+               'P','P','P','P','D','N',  & ! v lower,upper bound in x,y,z
+               'P','P','P','P','D','D'], & ! w lower,upper bound in x,y,z
               shape(cbcvel))
     real(rp)        , parameter, dimension(0:1,3,3) ::  bcvel = &
         reshape([0._rp,0._rp,0._rp,0._rp,0._rp,0._rp,   &
@@ -29,7 +31,7 @@
     !
     ! pressure
     character(len=1), parameter, dimension(0:1,3) :: cbcpre = &
-      reshape(['P','P','P','P','P','P'],shape(cbcpre))
+      reshape(['P','P','P','P','N','N'],shape(cbcpre))
     real(rp)        , parameter, dimension(0:1,3) ::  bcpre = &
       reshape([0._rp,0._rp,0._rp,0._rp,0._rp,0._rp],shape(bcpre))
     !
@@ -39,7 +41,8 @@
     !
     ! file names
     !
-    character(len=*), parameter             :: input_file  = 'data/fld_i.bin', &
+    !character(len=*), parameter            :: input_file  = 'data/fld_i.bin', &
+    character(len=*), parameter             :: input_file  = 'data/fldp.bin', &
                                                output_file = 'data/fld_o.bin'
     !
     ! local problem sizes
@@ -113,7 +116,11 @@
     !
     ! read input data
     !
-    call load('r',input_file,MPI_COMM_WORLD,myid,ni,[1,1,1],lo_i,hi_i,ui,vi,wi,pi,time,istep)
+    !call load('r',input_file,MPI_COMM_WORLD,myid,ni,[1,1,1],lo_i,hi_i,ui,vi,wi,pi,time,istep)
+    call load('r','data/fldu.bin',MPI_COMM_WORLD,myid,ni,[1,1,1],lo_i,hi_i,ui,time,istep)
+    call load('r','data/fldv.bin',MPI_COMM_WORLD,myid,ni,[1,1,1],lo_i,hi_i,vi,time,istep)
+    call load('r','data/fldw.bin',MPI_COMM_WORLD,myid,ni,[1,1,1],lo_i,hi_i,wi,time,istep)
+    call load('r','data/fldp.bin',MPI_COMM_WORLD,myid,ni,[1,1,1],lo_i,hi_i,pi,time,istep)
     if(myid.eq.0) print*, 'Loaded field at time = ', time, 'step = ',istep,'.'
     !
     ! impose boundary conditions
@@ -169,7 +176,11 @@
     call interp_fld([.false.,.false.,.true. ],lo_i,lo_o,hi_o,dli,dlo,wi,wo)
     call interp_fld([.false.,.false.,.false.],lo_i,lo_o,hi_o,dli,dlo,pi,po)
     !
-    call load('w',output_file,MPI_COMM_WORLD,myid,no,[1,1,1],lo_o,hi_o,uo,vo,wo,po,time,istep)
+    !call load('w',output_file,MPI_COMM_WORLD,myid,no,[1,1,1],lo_o,hi_o,uo,vo,wo,po,time,istep)
+    call load('w','data/fldu_o.bin',mpi_comm_world,myid,no,[1,1,1],lo_o,hi_o,uo,time,istep)
+    call load('w','data/fldv_o.bin',mpi_comm_world,myid,no,[1,1,1],lo_o,hi_o,vo,time,istep)
+    call load('w','data/fldw_o.bin',mpi_comm_world,myid,no,[1,1,1],lo_o,hi_o,wo,time,istep)
+    call load('w','data/fldp_o.bin',mpi_comm_world,myid,no,[1,1,1],lo_o,hi_o,po,time,istep)
     call MPI_FINALIZE(ierr)
   contains
     subroutine interp_fld(is_staggered,lo_i,lo_o,hi_o,dli,dlo,fldi,fldo)

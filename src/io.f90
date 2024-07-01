@@ -4,7 +4,8 @@ module mod_io
   private
   public load
 contains
-  subroutine load(io,filename,comm,myid,ng,nh,lo,hi,u,v,w,p,time,istep)
+  !subroutine load(io,filename,comm,myid,ng,nh,lo,hi,u,v,w,p,time,istep)
+  subroutine load(io,filename,comm,myid,ng,nh,lo,hi,p,time,istep)
     !
     ! reads/writes a restart file
     !
@@ -14,7 +15,7 @@ contains
     type(MPI_COMM)  , intent(in) :: comm
     integer         , intent(in) :: myid
     integer , intent(in), dimension(3) :: ng,nh,lo,hi
-    real(rp), intent(inout), dimension(lo(1)-nh(1):,lo(2)-nh(2):,lo(3)-nh(3):) :: u,v,w,p
+    real(rp), intent(inout), dimension(lo(1)-nh(1):,lo(2)-nh(2):,lo(3)-nh(3):) :: p
     real(rp), intent(inout) :: time
     integer , intent(inout) :: istep
     real(rp), dimension(2) :: fldinfo
@@ -29,22 +30,21 @@ contains
       !
       ! check file size first
       !
-      call MPI_FILE_GET_SIZE(fh,filesize,ierr)
-      good = (product(int(ng(:),MPI_OFFSET_KIND))*4+2)*(storage_size(1._rp)/8)
-      if(filesize /= good) then
-        if(myid == 0) print*, ''
-        if(myid == 0) print*, '*** Simulation aborted due a checkpoint file with incorrect size ***'
-        if(myid == 0) print*, '    file: ', filename, ' | expected size: ', good, '| actual size: ', filesize
-        call MPI_FINALIZE(ierr)
-        error stop
-      end if
+      !good = (product(int(ng(:),MPI_OFFSET_KIND))*4+2)*(storage_size(1._rp)/8)
+      !if(filesize /= good) then
+      !  if(myid == 0) print*, ''
+      !  if(myid == 0) print*, '*** Simulation aborted due a checkpoint file with incorrect size ***'
+      !  if(myid == 0) print*, '    file: ', filename, ' | expected size: ', good, '| actual size: ', filesize
+      !  call MPI_FINALIZE(ierr)
+      !  error stop
+      !end if
       !
       ! read
       !
       disp = 0_MPI_OFFSET_KIND
-      call io_field('r',fh,ng,nh,lo,hi,disp,u)
-      call io_field('r',fh,ng,nh,lo,hi,disp,v)
-      call io_field('r',fh,ng,nh,lo,hi,disp,w)
+      !call io_field('r',fh,ng,nh,lo,hi,disp,u)
+      !call io_field('r',fh,ng,nh,lo,hi,disp,v)
+      !call io_field('r',fh,ng,nh,lo,hi,disp,w)
       call io_field('r',fh,ng,nh,lo,hi,disp,p)
       call MPI_FILE_SET_VIEW(fh,disp,MPI_REAL_RP,MPI_REAL_RP,'native',MPI_INFO_NULL,ierr)
       nreals_myid = 0
@@ -54,6 +54,7 @@ contains
       call MPI_BCAST(fldinfo,2,MPI_REAL_RP,0,comm,ierr)
       time  =      fldinfo(1)
       istep = nint(fldinfo(2))
+			print*, 'READING...'
     case('w')
       !
       ! write
@@ -63,10 +64,11 @@ contains
       filesize = 0_MPI_OFFSET_KIND
       call MPI_FILE_SET_SIZE(fh,filesize,ierr)
       disp = 0_MPI_OFFSET_KIND
-      call io_field('w',fh,ng,nh,lo,hi,disp,u)
-      call io_field('w',fh,ng,nh,lo,hi,disp,v)
-      call io_field('w',fh,ng,nh,lo,hi,disp,w)
+      !call io_field('w',fh,ng,nh,lo,hi,disp,u)
+      !call io_field('w',fh,ng,nh,lo,hi,disp,v)
+      !call io_field('w',fh,ng,nh,lo,hi,disp,w)
       call io_field('w',fh,ng,nh,lo,hi,disp,p)
+			print*, 'WRITING...'
       call MPI_FILE_SET_VIEW(fh,disp,MPI_REAL_RP,MPI_REAL_RP,'native',MPI_INFO_NULL,ierr)
       fldinfo = [time,1._rp*istep]
       nreals_myid = 0
